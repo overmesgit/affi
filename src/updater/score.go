@@ -15,6 +15,7 @@ func NewScoreUpdater(db *pg.DB) *ScoreUpdater {
 	return &ScoreUpdater{db: db, toUpdate: make(chan UserData, 1)}
 }
 
+// Concurrently update all user scores in db
 func (s *ScoreUpdater) Start(threads int) {
 	go s.fillUpdateQueue()
 	for i := 0; i < threads; i++ {
@@ -23,6 +24,8 @@ func (s *ScoreUpdater) Start(threads int) {
 
 }
 
+// Get last updated id and start fill queue with users which id > than taken
+// After full update start from 0
 func (s *ScoreUpdater) fillUpdateQueue() {
 	lastUpdate, err := GetLastUpdate(s.db)
 	if err != nil {
@@ -57,21 +60,6 @@ func (s *ScoreUpdater) fillUpdateQueue() {
 	}
 }
 
-func userListToScoresMap(list malpar.UserList) ([]UserScore, []UserScore) {
-	animeResult := make([]UserScore, 0)
-
-	for _, score := range list.AnimeList {
-		animeResult = append(animeResult, UserScore{Id: score.Id, Sc: score.Score, St: score.Status, Lu: score.LastUpdate})
-	}
-
-	mangaResult := make([]UserScore, 0)
-	for _, score := range list.MangaList {
-		mangaResult = append(mangaResult, UserScore{Id: score.Id, Sc: score.Score, St: score.Status, Lu: score.LastUpdate})
-	}
-
-	return animeResult, mangaResult
-}
-
 func (s *ScoreUpdater) startThread() {
 	for {
 		user := <-s.toUpdate
@@ -81,7 +69,7 @@ func (s *ScoreUpdater) startThread() {
 			mylog.Logger.Printf("Get score for %v: %v", user, err)
 		} else {
 			if len(update.AnimeList) > 0 || len(update.MangaList) > 0 {
-				user.AnimeScores, user.MangaScores = userListToScoresMap(update)
+				user.UpdateScoresFromList(update)
 				_, err = s.db.Model(&user).Column("anime_scores", "manga_scores").Update()
 				if err != nil {
 					mylog.Logger.Printf("Update scores %v: %v", user.Name, err)

@@ -1,8 +1,10 @@
 package main
 
 import (
+	"counter"
 	"github.com/go-pg/pg"
-	"sync"
+	//"sync"
+	"mylog"
 	"updater"
 )
 
@@ -16,13 +18,19 @@ func main() {
 	//	panic(err)
 	//}
 
-	updater.NewUserUpdater(db).Start()
-	updater.NewScoreUpdater(db).Start(2)
+	//updater.NewUserUpdater(db).Start()
+	//updater.NewScoreUpdater(db).Start(2)
+
+	pearsonCounter := counter.NewPearsonCounter(db)
+	pearsonCounter.Prepare()
+
+	shared, pearson := pearsonCounter.Pearson.IndexesToPearson(0, 1, true, false)
+	mylog.Logger.Printf("%v %v", pearson, shared)
 
 	// Server because
-	var wg sync.WaitGroup
-	wg.Add(1)
-	wg.Wait()
+	//var wg sync.WaitGroup
+	//wg.Add(1)
+	//wg.Wait()
 
 }
 
