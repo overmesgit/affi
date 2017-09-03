@@ -1,7 +1,7 @@
 
-# Project Title
+# MyAnimeList.org affinity searcher
 
-MyAnimeList.org affinity searcher
+Synchronize user data with myanimelist, count pearson correlation with given user
 
 ## Getting Started
 
