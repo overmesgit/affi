@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/go-pg/pg"
+	"sync"
 	"updater"
 )
 
@@ -15,12 +16,18 @@ func main() {
 	//	panic(err)
 	//}
 
-	updater.StartUserUpdater(db)
+	updater.NewUserUpdater(db).Start()
+	updater.NewScoreUpdater(db).Start(2)
+
+	// Server because
+	var wg sync.WaitGroup
+	wg.Add(1)
+	wg.Wait()
 
 }
 
 func createSchema(db *pg.DB) error {
-	for _, model := range []interface{}{&updater.LastUpdated{}} {
+	for _, model := range []interface{}{&updater.UserData{}} {
 		err := db.CreateTable(model, nil)
 		if err != nil {
 			return err

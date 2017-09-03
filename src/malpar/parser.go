@@ -49,6 +49,13 @@ func TitlesAvg(scoresSlice interface{}) float32 {
 	return float32(sum) / float32(count)
 }
 
+type UserList struct {
+	UserId    int
+	UserName  string
+	AnimeList []AnimeTitle
+	MangaList []MangaTitle
+}
+
 func (l *UserList) AnimeAvg() float32 {
 	return TitlesAvg(l.AnimeList)
 }

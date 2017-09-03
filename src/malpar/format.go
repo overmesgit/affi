@@ -10,7 +10,7 @@ import (
 type Title struct {
 	Status      uint   `xml:"my_status"`
 	Score       uint   `xml:"my_score"`
-	LastUpdate  int    `xml:"my_last_updated"`
+	LastUpdate  uint   `xml:"my_last_updated"`
 	MyStartDate string `xml:"my_start_date"`
 	MyLastDate  string `xml:"my_finish_date"`
 }
@@ -63,18 +63,11 @@ type MangaResult struct {
 	TitleList []MangaTitle `xml:"manga"`
 }
 
-type UserList struct {
-	UserId    int
-	UserName  string
-	AnimeList []AnimeTitle
-	MangaList []MangaTitle
-}
-
 type TitleLastUpdater interface {
 	SetLastUpdate()
 }
 
-func GetMALDate(date string) int {
+func GetMALDate(date string) uint {
 	layout := "2006-01-02"
 	date = strings.Replace(date, "-00", "-01", -1)
 	myLast, err := time.Parse(layout, date)
@@ -86,7 +79,7 @@ func GetMALDate(date string) int {
 		fmt.Println(err)
 		return 0
 	}
-	return int(myLast.Unix())
+	return uint(myLast.Unix())
 }
 
 func (t *Title) SetLastUpdate() {

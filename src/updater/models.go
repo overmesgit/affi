@@ -9,6 +9,7 @@ type LastUpdated struct {
 	Id            int
 	LastUpdatedId int
 	LastProfileId int
+	LastScoreId   int
 }
 
 func GetLastUpdate(db *pg.DB) (LastUpdated, error) {
@@ -20,14 +21,24 @@ func GetLastUpdate(db *pg.DB) (LastUpdated, error) {
 	return lastUpdate, err
 }
 
+// Let's keep posgresql space with short json keys
+type UserScore struct {
+	Id uint // ItemId
+	Sc uint // Score
+	Lu uint // LastUpdate
+	St uint // Status
+}
+
 type UserData struct {
-	Id         int
-	Name       string
-	LastOnline time.Time
-	Gender     string
-	Birthday   string
-	Joined     string
-	Location   string
+	Id          int
+	Name        string
+	LastLogin   time.Time
+	Gender      string
+	Birthday    string
+	Joined      string
+	Location    string
+	AnimeScores []UserScore
+	MangaScores []UserScore
 }
 
 func GetLastUser(db *pg.DB) (UserData, error) {
