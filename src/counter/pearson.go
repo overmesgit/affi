@@ -74,7 +74,7 @@ func (p *Pearson) UpdateUserSlices(user updater.UserData) int32 {
 		animeIndexes, animeScores := p.getSlice(user.AnimeScores, p.AnimeIdReplace)
 		mangaIndexes, mangaScores := p.getSlice(user.MangaScores, p.MangaIdReplace)
 
-		userIndex := p.getUserIndex(user.Id)
+		userIndex = p.getUserIndex(user.Id)
 		if userIndex >= int32(len(p.AnimeScores)) {
 			p.AnimeIndexes = append(p.AnimeIndexes, animeIndexes)
 			p.AnimeScores = append(p.AnimeScores, animeScores)
@@ -136,16 +136,14 @@ func (p *Pearson) Count(user updater.UserData, minShare int, anime, manga bool) 
 	return res
 }
 
-func scoresSum(indexesA, indexesB []int16, scoresA, scoresB []int8) (int, int, int, [][2]int8) {
+func scoresSum(indexesA, indexesB []int16, scoresA, scoresB []int8) (int, int, [][2]int8) {
 	scoresASum := 0
 	scoresBSum := 0
-	shared := 0
 	sharedScores := make([][2]int8, 0)
 	for a, b := 0, 0; a < len(indexesA) && b < len(indexesB); {
 		if indexesA[a] == indexesB[b] {
 			scoresASum += int(scoresA[a])
 			scoresBSum += int(scoresB[b])
-			shared++
 			sharedScores = append(sharedScores, [2]int8{scoresA[a], scoresB[b]})
 
 			a++
@@ -158,7 +156,7 @@ func scoresSum(indexesA, indexesB []int16, scoresA, scoresB []int8) (int, int, i
 			}
 		}
 	}
-	return scoresASum, scoresBSum, shared, sharedScores
+	return scoresASum, scoresBSum, sharedScores
 }
 
 func (p *Pearson) IndexesToPearson(indexA, indexB int32, anime, manga bool) (int, float32) {
@@ -169,29 +167,26 @@ func (p *Pearson) IndexesToPearson(indexA, indexB int32, anime, manga bool) (int
 	sharedScores := make([][2]int8, 0)
 	scoresASum := 0
 	scoresBSum := 0
-	shared := 0
 
 	if anime {
-		aSum, bSub, sharedSum, scores := scoresSum(p.AnimeIndexes[indexA], p.AnimeIndexes[indexB], p.AnimeScores[indexA], p.AnimeScores[indexB])
+		aSum, bSub, scores := scoresSum(p.AnimeIndexes[indexA], p.AnimeIndexes[indexB], p.AnimeScores[indexA], p.AnimeScores[indexB])
 		scoresASum += aSum
 		scoresBSum += bSub
-		shared += sharedSum
 		sharedScores = append(sharedScores, scores...)
 	}
 
 	if manga {
-		aSum, bSub, sharedSum, scores := scoresSum(p.MangaIndexes[indexA], p.MangaIndexes[indexB], p.MangaScores[indexA], p.MangaScores[indexB])
+		aSum, bSub, scores := scoresSum(p.MangaIndexes[indexA], p.MangaIndexes[indexB], p.MangaScores[indexA], p.MangaScores[indexB])
 		scoresASum += aSum
 		scoresBSum += bSub
-		shared += sharedSum
 		sharedScores = append(sharedScores, scores...)
 	}
 
-	if shared == 0 {
-		return shared, float32(0.0)
+	if len(sharedScores) == 0 {
+		return 0, float32(0.0)
 	}
-	aAvg := float32(scoresASum) / float32(shared)
-	bAvg := float32(scoresBSum) / float32(shared)
+	aAvg := float32(scoresASum) / float32(len(sharedScores))
+	bAvg := float32(scoresBSum) / float32(len(sharedScores))
 
 	for i := range sharedScores {
 		scoreA, scoreB := float32(sharedScores[i][0])-aAvg, float32(sharedScores[i][1])-bAvg
@@ -200,7 +195,7 @@ func (p *Pearson) IndexesToPearson(indexA, indexB int32, anime, manga bool) (int
 		denominatorB += scoreB * scoreB
 	}
 	if denominatorA*denominatorB == float32(0.0) {
-		return shared, float32(0.0)
+		return len(sharedScores), float32(0.0)
 	}
-	return shared, float32(float64(numerator) / (math.Sqrt(float64(denominatorA * denominatorB))))
+	return len(sharedScores), float32(float64(numerator) / (math.Sqrt(float64(denominatorA * denominatorB))))
 }
