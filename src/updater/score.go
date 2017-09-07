@@ -9,10 +9,11 @@ import (
 type ScoreUpdater struct {
 	db       *pg.DB
 	toUpdate chan UserData
+	onUpdate func(data UserData)
 }
 
-func NewScoreUpdater(db *pg.DB) *ScoreUpdater {
-	return &ScoreUpdater{db: db, toUpdate: make(chan UserData, 1)}
+func NewScoreUpdater(db *pg.DB, onUpdate func(data UserData)) *ScoreUpdater {
+	return &ScoreUpdater{db: db, toUpdate: make(chan UserData, 1), onUpdate: onUpdate}
 }
 
 // Concurrently update all user scores in db
@@ -64,7 +65,7 @@ func (s *ScoreUpdater) startThread() {
 	for {
 		user := <-s.toUpdate
 		mylog.Logger.Printf("Get score for %v %v", user.Id, user.Name)
-		update, err := malpar.GetUserScoresByName(user.Name, 3)
+		update, err := malpar.GetUserScoresByName(user.Name, 3, 3)
 		if err != nil {
 			mylog.Logger.Printf("Get score for %v: %v", user, err)
 		} else {
@@ -74,6 +75,7 @@ func (s *ScoreUpdater) startThread() {
 				if err != nil {
 					mylog.Logger.Printf("Update scores %v: %v", user.Name, err)
 				}
+				s.onUpdate(user)
 			}
 
 		}

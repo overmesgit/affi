@@ -7,19 +7,19 @@ func GetUserScoresById(userId int, retry int) (UserList, error) {
 	if err != nil {
 		return UserList{UserId: userId}, err
 	}
-	userList, err := GetUserScoresByName(userName, 3)
+	userList, err := GetUserScoresByName(userName, 3, 3)
 	userList.UserId = userId
 	return userList, err
 }
 
-func GetUserScoresByName(userName string, retry int) (UserList, error) {
+func GetUserScoresByName(userName string, retry int, sleep time.Duration) (UserList, error) {
 	userList := UserList{UserName: userName}
 	for _, content := range [2]string{"anime", "manga"} {
 		var err error
 		var body []byte
 		for try := 1; try == 1 || (try <= retry && err != nil); try++ {
 			body, err = getUserApiPage(userName, content)
-			time.Sleep(3 * time.Second)
+			time.Sleep(sleep * time.Second)
 		}
 		if err != nil {
 			return userList, err

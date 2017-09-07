@@ -16,6 +16,7 @@ const (
 	commentsUrl = "/comments.php?id=%v"
 	profileUrl  = "/profile/%v"
 	apiUrl      = "/malappinfo.php?u=%v&status=all&type=%s"
+	Error429    = "too much requests"
 )
 
 type ParserError struct {
@@ -132,7 +133,7 @@ func getUserApiPage(userName string, content string) ([]byte, error) {
 	defer resp.Body.Close()
 	if resp.StatusCode != 200 {
 		if resp.StatusCode == 429 {
-			fmt.Println("Get user page error 429")
+			return body, errors.New(Error429)
 		}
 		return body, errors.New(fmt.Sprintf("User page error %v %v", url, resp.StatusCode))
 	}

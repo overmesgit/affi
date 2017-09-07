@@ -1,41 +1,28 @@
 package main
 
 import (
-	"counter"
 	"github.com/go-pg/pg"
-	//"sync"
-	"mylog"
-	"updater"
+	"server"
 )
 
 func main() {
 	db := pg.Connect(&pg.Options{
 		User: "user", Password: "user", Database: "test",
 	})
+
 	//var err error
 	//err = createSchema(db)
 	//if err != nil {
 	//	panic(err)
 	//}
 
-	//updater.NewUserUpdater(db).Start()
-	//updater.NewScoreUpdater(db).Start(2)
-
-	pearsonCounter := counter.NewPearsonCounter(db)
-	pearsonCounter.Prepare()
-
-	shared, pearson := pearsonCounter.Pearson.IndexesToPearson(0, 1, true, false)
-	mylog.Logger.Printf("%v %v", pearson, shared)
-
-	// Server because
-	//var wg sync.WaitGroup
-	//wg.Add(1)
-	//wg.Wait()
+	myServer := server.NewServer("127.0.0.1:8000", db)
+	myServer.Start()
 
 }
 
 func createSchema(db *pg.DB) error {
-	for _, model := range []interface{}{&updater.UserData{}} {
+	for _, model := range []interface{}{&server.Result{}} {
 		err := db.CreateTable(model, nil)
 		if err != nil {
 			return err

@@ -52,6 +52,9 @@ func (p *Pearson) getUserIndex(userId int) int32 {
 }
 
 func (p *Pearson) getSlice(userList []updater.UserScore, replace map[uint]int16) ([]int16, []int8) {
+	sort.Slice(userList, func(i, j int) bool {
+		return getIdReplace(userList[i].Id, replace) < getIdReplace(userList[j].Id, replace)
+	})
 	indexes := make([]int16, 0)
 	scores := make([]int8, 0)
 	for i := range userList {
@@ -67,10 +70,6 @@ func (p *Pearson) getSlice(userList []updater.UserScore, replace map[uint]int16)
 func (p *Pearson) UpdateUserSlices(user updater.UserData) int32 {
 	userIndex := int32(0)
 	if len(user.AnimeScores) > 0 || len(user.MangaScores) > 0 {
-		sort.Slice(user.AnimeScores, func(i, j int) bool {
-			return user.AnimeScores[i].Id < user.AnimeScores[j].Id
-		})
-
 		animeIndexes, animeScores := p.getSlice(user.AnimeScores, p.AnimeIdReplace)
 		mangaIndexes, mangaScores := p.getSlice(user.MangaScores, p.MangaIdReplace)
 
@@ -106,11 +105,12 @@ func (a PearsonSlice) Less(i, j int) bool {
 	return a[i].Pearson < a[j].Pearson
 }
 
-func (p *Pearson) Count(user updater.UserData, minShare int, anime, manga bool) PearsonSlice {
+func (p *Pearson) Count(user updater.UserData, minShare int, anime, manga bool) (PearsonSlice, int) {
 	userIndex := p.UpdateUserSlices(user)
 
 	start := time.Now().UnixNano()
 
+	compare := 0
 	pearsonHeap := make(PearsonResultHeap, 0)
 	for otherIndex := 0; otherIndex < len(p.AnimeIndexes); otherIndex++ {
 		otherInt32 := int32(otherIndex)
@@ -118,6 +118,7 @@ func (p *Pearson) Count(user updater.UserData, minShare int, anime, manga bool) 
 			shared, pearson := p.IndexesToPearson(userIndex, otherInt32, anime, manga)
 			sharedUserId := p.UserIndexReplace[otherInt32]
 			if int(shared) > minShare {
+				compare++
 				pearsonHeap.Push(PearsonResult{sharedUserId, shared, pearson})
 				if len(pearsonHeap) > 100 {
 					pearsonHeap.Pop()
@@ -133,7 +134,7 @@ func (p *Pearson) Count(user updater.UserData, minShare int, anime, manga bool) 
 	end := float64(time.Now().UnixNano()-start) / float64(time.Millisecond)
 	mylog.Logger.Printf("Pearson for %v: %v counted in %v ms Scores: %v\n", user.Id, user.Name, end, len(p.AnimeIndexes))
 
-	return res
+	return res, compare
 }
 
 func scoresSum(indexesA, indexesB []int16, scoresA, scoresB []int8) (int, int, [][2]int8) {

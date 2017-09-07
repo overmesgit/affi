@@ -58,7 +58,7 @@ func (u UserData) UpdateUserNameOrCreate(db *pg.DB) error {
 	}
 }
 
-func (u UserData) UpdateScoresFromList(list malpar.UserList) {
+func (u *UserData) UpdateScoresFromList(list malpar.UserList) {
 	animeResult := make([]UserScore, 0)
 	for _, score := range list.AnimeList {
 		animeResult = append(animeResult, UserScore{Id: score.Id, Sc: score.Score, St: score.Status, Lu: score.LastUpdate})

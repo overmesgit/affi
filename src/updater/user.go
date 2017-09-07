@@ -69,9 +69,9 @@ func (u UserUpdater) FullUpdate() {
 		}
 
 		if err != nil {
-			mylog.Logger.Printf("Get user data: %v", err)
+			mylog.Logger.Printf("Get user data for %v: %v", i, err)
 		} else {
-			mylog.Logger.Printf("Get user data: %v %v", i, username)
+			mylog.Logger.Printf("Get user data for %v: %v", i, username)
 			user := UserData{Id: i, Name: username}
 			err = user.UpdateUserNameOrCreate(u.db)
 			if err != nil {

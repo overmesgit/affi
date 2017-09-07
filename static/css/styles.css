@@ -1,0 +1,31 @@
+.panel-title .result__header {
+    text-decoration: none;
+}
+
+.result__remove {
+    margin: 3px 5px 3px 15px;
+    top: 0
+}
+#BackImage {
+    z-index: -100;
+    position: absolute;
+    width: 100%;
+}
+body {
+    background: url('/static/img/dark_embroidery.png');
+}
+#Container {
+    opacity: 0.9;
+}
+.well {
+    background: #d6e9c6;
+}
+#Title {
+    color: #31491D;
+}
+.progress {
+    margin-bottom: 0;
+}
+.result__header .btn {
+    padding: 0 5px;
+}

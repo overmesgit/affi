@@ -52,4 +52,40 @@ func TestPearson(t *testing.T) {
 		t.Error("Wrong pearson number")
 	}
 
+	shared, pearsonResult = pearson.IndexesToPearson(index1, index2, false, true)
+	if shared != 1 || pearsonResult != 0 {
+		t.Errorf("Wrong manga correlation %v %v", shared, pearsonResult)
+	}
+
+}
+
+func TestScoresUpdate(t *testing.T) {
+	// https://en.wikipedia.org/wiki/Pearson_correlation_coefficient
+	pearson := NewPearson()
+
+	user1 := updater.UserData{Id: 1, AnimeScores: []updater.UserScore{
+		{Id: 3, Sc: 4},
+		{Id: 4, Sc: 7},
+	}, MangaScores: []updater.UserScore{
+		{Id: 1, Sc: 1},
+		{Id: 2, Sc: 2},
+	}}
+
+	user2 := updater.UserData{Id: 2, AnimeScores: []updater.UserScore{
+		{Id: 1, Sc: 7},
+		{Id: 2, Sc: 4},
+		{Id: 3, Sc: 4},
+	}, MangaScores: []updater.UserScore{
+		{Id: 1, Sc: 2},
+	}}
+	pearson.UpdateUserSlices(user1)
+	pearson.UpdateUserSlices(user2)
+
+	prev := int16(0)
+	for _, v := range pearson.AnimeIndexes[1] {
+		if v < prev {
+			t.Fatal("wrong sorting")
+		}
+	}
+
 }
