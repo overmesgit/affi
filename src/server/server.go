@@ -6,7 +6,6 @@ import (
 	"html/template"
 	"mylog"
 	"net/http"
-	//"updater"
 	"updater"
 )
 
@@ -17,8 +16,6 @@ func serveHome(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Method not allowed", 405)
 		return
 	}
-	// TODO: remove
-	//homeTempl = template.Must(template.ParseFiles("templates/home.html"))
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	homeTempl.Execute(w, r.Host)
 }

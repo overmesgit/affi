@@ -1,6 +1,7 @@
 package counter
 
 import (
+	"container/heap"
 	"math"
 	"mylog"
 	"sort"
@@ -111,7 +112,7 @@ func (p *Pearson) Count(user updater.UserData, minShare int, anime, manga bool) 
 	start := time.Now().UnixNano()
 
 	compare := 0
-	pearsonHeap := make(PearsonResultHeap, 0)
+	pearsonHeap := &PearsonResultHeap{}
 	for otherIndex := 0; otherIndex < len(p.AnimeIndexes); otherIndex++ {
 		otherInt32 := int32(otherIndex)
 		if userIndex != otherInt32 {
@@ -119,16 +120,16 @@ func (p *Pearson) Count(user updater.UserData, minShare int, anime, manga bool) 
 			sharedUserId := p.UserIndexReplace[otherInt32]
 			if int(shared) > minShare {
 				compare++
-				pearsonHeap.Push(PearsonResult{sharedUserId, shared, pearson})
-				if len(pearsonHeap) > 100 {
-					pearsonHeap.Pop()
+				heap.Push(pearsonHeap, PearsonResult{sharedUserId, shared, pearson})
+				if pearsonHeap.Len() > 100 {
+					heap.Pop(pearsonHeap)
 				}
 			}
 		}
 
 	}
 
-	res := PearsonSlice(pearsonHeap)
+	res := PearsonSlice(*pearsonHeap)
 	sort.Sort(sort.Reverse(res))
 
 	end := float64(time.Now().UnixNano()-start) / float64(time.Millisecond)

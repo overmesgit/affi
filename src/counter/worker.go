@@ -1,6 +1,7 @@
 package counter
 
 import (
+	"fmt"
 	"github.com/go-pg/pg"
 	"mylog"
 	"updater"
@@ -28,9 +29,10 @@ func NewPearsonCounter(db *pg.DB) *PearsonCounter {
 
 func (p *PearsonCounter) Prepare() {
 	lastLoadedId := 0
-	for {
+	scores := 0
+	for i := 0; i < 5; i++ {
 		var users []updater.UserData
-		err := p.db.Model(&users).Where("id > ?", lastLoadedId).Order("id ASC").Limit(1000).Select()
+		err := p.db.Model(&users).Where("id > ?", lastLoadedId).Order("id ASC").Limit(100000).Select()
 		if len(users) == 0 {
 			break
 		}
@@ -40,10 +42,14 @@ func (p *PearsonCounter) Prepare() {
 			for i := range users {
 				p.Pearson.UpdateUserSlices(users[i])
 				lastLoadedId = users[i].Id
+				scores += len(users[i].AnimeScores) + len(users[i].MangaScores)
 			}
 		}
+		fmt.Printf("Loaded user before id %v\n", lastLoadedId)
+		fmt.Printf("Loaded scores %v\n", scores)
 	}
 	mylog.Logger.Printf("Loaded users %v", len(p.Pearson.AnimeIndexes))
+	mylog.Logger.Printf("Scores: %v", scores)
 	mylog.Logger.Printf("Anime Items: %v", len(p.Pearson.AnimeIdReplace))
 	mylog.Logger.Printf("Manga Items: %v", len(p.Pearson.MangaIdReplace))
 }

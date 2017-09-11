@@ -116,6 +116,7 @@ func (u UserUpdater) personalDataUpdate() {
 		profile, err := malpar.GetUserProfileDataByUserName(nextUser.Name, 3)
 		if err != nil {
 			mylog.Logger.Printf("Get user profile %v: %v", nextUser.Name, err)
+			lastUpdate.LastProfileId++
 			continue
 		}
 
