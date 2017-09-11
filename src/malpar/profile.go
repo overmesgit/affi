@@ -35,7 +35,7 @@ func GetUserNameById(userId int, retry int) (string, error) {
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode == http.StatusNotFound {
-		return "", errors.New("User not exist")
+		return "", ErrUserNotExist
 	}
 	if resp.StatusCode != http.StatusOK {
 		return "", errors.New(fmt.Sprintf("User name not found %v", userId))
