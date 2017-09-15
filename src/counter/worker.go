@@ -28,11 +28,13 @@ func NewPearsonCounter(db *pg.DB) *PearsonCounter {
 }
 
 func (p *PearsonCounter) Prepare() {
-	lastLoadedId := 0
+	offset := 0
+	limit := 10000
 	scores := 0
-	for i := 0; i < 5; i++ {
+	has_scores := "jsonb_array_length(anime_scores) > 0 or jsonb_array_length(manga_scores) > 0"
+	for {
 		var users []updater.UserData
-		err := p.db.Model(&users).Where("id > ?", lastLoadedId).Order("id ASC").Limit(100000).Select()
+		err := p.db.Model(&users).Where(has_scores).Limit(limit).Offset(offset).Select()
 		if len(users) == 0 {
 			break
 		}
@@ -41,11 +43,11 @@ func (p *PearsonCounter) Prepare() {
 		} else {
 			for i := range users {
 				p.Pearson.UpdateUserSlices(users[i])
-				lastLoadedId = users[i].Id
 				scores += len(users[i].AnimeScores) + len(users[i].MangaScores)
 			}
 		}
-		fmt.Printf("Loaded user before id %v\n", lastLoadedId)
+		offset += limit
+		fmt.Printf("Loaded user before id %v\n", offset)
 		fmt.Printf("Loaded scores %v\n", scores)
 	}
 	mylog.Logger.Printf("Loaded users %v", len(p.Pearson.AnimeIndexes))
