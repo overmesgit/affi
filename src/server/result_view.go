@@ -37,9 +37,9 @@ func (c *Server) FillUserData(results []Result) ([]interface{}, error) {
 		}
 	}
 
-	userNamesMap := make(map[int32]updater.UserData, 0)
+	userNamesMap := make(map[uint32]updater.UserData, 0)
 	for i := range userNames {
-		userNamesMap[int32(userNames[i].Id)] = userNames[i]
+		userNamesMap[uint32(userNames[i].Id)] = userNames[i]
 	}
 
 	filledResults := make([]interface{}, 0)
@@ -130,7 +130,7 @@ func (c *Server) createResult(r *http.Request) (interface{}, error) {
 					mylog.Logger.Printf("Update result: %v", err)
 				}
 			} else {
-				user := updater.UserData{Id: userList.UserId, Name: userList.UserName}
+				user := updater.UserData{Id: uint(userList.UserId), Name: userList.UserName}
 				user.UpdateScoresFromList(userList)
 				res, err := c.db.Model(&user).Column("anime_scores", "manga_scores").Update()
 				if res.RowsAffected() == 0 {

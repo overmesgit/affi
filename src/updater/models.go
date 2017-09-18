@@ -8,9 +8,9 @@ import (
 
 type LastUpdated struct {
 	Id            int
-	LastUpdatedId int
-	LastProfileId int
-	LastScoreId   int
+	LastUpdatedId uint
+	LastProfileId uint
+	LastScoreId   uint
 }
 
 func GetLastUpdate(db *pg.DB) (LastUpdated, error) {
@@ -24,14 +24,14 @@ func GetLastUpdate(db *pg.DB) (LastUpdated, error) {
 
 // Let's keep posgresql space with short json keys
 type UserScore struct {
-	Id uint // ItemId
-	Sc uint // Score
-	Lu uint // LastUpdate
-	St uint // Status
+	Id uint  // ItemId
+	Sc uint8 // Score
+	Lu uint  // LastUpdate
+	St uint8 // Status
 }
 
 type UserData struct {
-	Id          int
+	Id          uint
 	Name        string
 	LastLogin   time.Time
 	Gender      string
@@ -61,13 +61,13 @@ func (u UserData) UpdateUserNameOrCreate(db *pg.DB) error {
 func (u *UserData) UpdateScoresFromList(list malpar.UserList) {
 	animeResult := make([]UserScore, 0)
 	for _, score := range list.AnimeList {
-		animeResult = append(animeResult, UserScore{Id: score.Id, Sc: score.Score, St: score.Status, Lu: score.LastUpdate})
+		animeResult = append(animeResult, UserScore{Id: score.Id, Sc: uint8(score.Score), St: uint8(score.Status), Lu: score.LastUpdate})
 	}
 	u.AnimeScores = animeResult
 
 	mangaResult := make([]UserScore, 0)
 	for _, score := range list.MangaList {
-		mangaResult = append(mangaResult, UserScore{Id: score.Id, Sc: score.Score, St: score.Status, Lu: score.LastUpdate})
+		mangaResult = append(mangaResult, UserScore{Id: score.Id, Sc: uint8(score.Score), St: uint8(score.Status), Lu: score.LastUpdate})
 	}
 	u.MangaScores = mangaResult
 }

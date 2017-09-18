@@ -59,8 +59,8 @@ func (u UserUpdater) FullUpdate() {
 		mylog.Logger.Printf("Get last user: %v", err)
 	}
 
-	for i := lastUpdate.LastUpdatedId; i < lastUser.Id; i++ {
-		username, err := malpar.GetUserNameById(i, 3)
+	for i := uint(lastUpdate.LastUpdatedId); i < lastUser.Id; i++ {
+		username, err := malpar.GetUserNameById(int(i), 3)
 		if err == malpar.ErrUserNotExist {
 			err = u.db.Delete(&UserData{Id: i})
 			if err != nil {
@@ -149,7 +149,7 @@ func (u UserUpdater) getNewUsers() {
 	}
 
 	for userId := firstId; userId < lastUser.Id+CHECK_USER_RANGE; userId++ {
-		username, err := malpar.GetUserNameById(userId, 3)
+		username, err := malpar.GetUserNameById(int(userId), 3)
 		if err != nil {
 			mylog.Logger.Printf("User update: %v %v", userId, err)
 		} else {

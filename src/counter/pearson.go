@@ -10,72 +10,80 @@ import (
 )
 
 type Pearson struct {
-	AnimeIndexes [][]int16
-	AnimeScores  [][]int8
-	MangaIndexes [][]int16
-	MangaScores  [][]int8
+	AnimeIndexes [][]uint16
+	AnimeScores  [][]uint8
+	MangaIndexes [][]uint16
+	MangaScores  [][]uint8
 	// UserIndex -> UserId
-	UserIndexReplace map[int32]int32
+	UserIndexToId map[uint32]uint32
 	// UserId -> UserIndex
-	UserIdReplace map[int32]int32
+	UserIdToIndex map[uint32]uint32
 	// AnimeId -> AnimeIndex
-	AnimeIdReplace map[uint]int16
+	AnimeIdToIndex map[uint]uint16
 	// MangaId -> MangaIndex
-	MangaIdReplace map[uint]int16
+	MangaIdToIndex map[uint]uint16
 }
 
 func NewPearson() *Pearson {
-	return &Pearson{AnimeIndexes: make([][]int16, 0), AnimeScores: make([][]int8, 0),
-		MangaIndexes: make([][]int16, 0), MangaScores: make([][]int8, 0),
-		UserIndexReplace: make(map[int32]int32, 100), UserIdReplace: make(map[int32]int32, 100),
-		AnimeIdReplace: make(map[uint]int16), MangaIdReplace: make(map[uint]int16)}
+	return &Pearson{AnimeIndexes: make([][]uint16, 0), AnimeScores: make([][]uint8, 0),
+		MangaIndexes: make([][]uint16, 0), MangaScores: make([][]uint8, 0),
+		UserIndexToId: make(map[uint32]uint32, 100), UserIdToIndex: make(map[uint32]uint32, 100),
+		AnimeIdToIndex: make(map[uint]uint16), MangaIdToIndex: make(map[uint]uint16)}
 }
 
-func getIdReplace(id uint, replace map[uint]int16) int16 {
+func getIdReplace(id uint, replace map[uint]uint16) uint16 {
 	index, ok := replace[id]
 	if !ok {
-		index = int16(len(replace))
+		index = uint16(len(replace))
 		replace[id] = index
 
 	}
 	return index
 }
 
-func (p *Pearson) getUserIndex(userId int) int32 {
-	index, ok := p.UserIdReplace[int32(userId)]
+func (p *Pearson) getUserIndex(userId uint) uint32 {
+	index, ok := p.UserIdToIndex[uint32(userId)]
 	if !ok {
-		index = int32(len(p.UserIdReplace))
-		p.UserIdReplace[int32(userId)] = index
-		p.UserIndexReplace[index] = int32(userId)
+		index = uint32(len(p.UserIdToIndex))
+		p.UserIdToIndex[uint32(userId)] = index
+		p.UserIndexToId[index] = uint32(userId)
 
 	}
 	return index
 }
 
-func (p *Pearson) getSlice(userList []updater.UserScore, replace map[uint]int16) ([]int16, []int8) {
+func (p *Pearson) getSlice(userList []updater.UserScore, replace map[uint]uint16) ([]uint16, []uint8) {
 	sort.Slice(userList, func(i, j int) bool {
 		return getIdReplace(userList[i].Id, replace) < getIdReplace(userList[j].Id, replace)
 	})
-	indexes := make([]int16, 0)
-	scores := make([]int8, 0)
+	indexes := make([]uint16, 0)
+	scores := make([]uint8, 0)
+	// first 4 bits for first score, second 4 bits for second
+	scoresIndex := 0
 	for i := range userList {
 		if userList[i].Sc > 0 {
 			itemIndex := getIdReplace(userList[i].Id, replace)
 			indexes = append(indexes, itemIndex)
-			scores = append(scores, int8(userList[i].Sc))
+
+			if scoresIndex%2 == 0 {
+				scores = append(scores, userList[i].Sc<<4)
+			} else {
+				scores[scoresIndex/2] += userList[i].Sc
+			}
+			scoresIndex++
 		}
 	}
 	return indexes, scores
 }
 
-func (p *Pearson) UpdateUserSlices(user updater.UserData) int32 {
-	userIndex := int32(0)
+func (p *Pearson) UpdateUserSlices(user updater.UserData) uint32 {
+	userIndex := uint32(0)
 	if len(user.AnimeScores) > 0 || len(user.MangaScores) > 0 {
-		animeIndexes, animeScores := p.getSlice(user.AnimeScores, p.AnimeIdReplace)
-		mangaIndexes, mangaScores := p.getSlice(user.MangaScores, p.MangaIdReplace)
+		animeIndexes, animeScores := p.getSlice(user.AnimeScores, p.AnimeIdToIndex)
+		mangaIndexes, mangaScores := p.getSlice(user.MangaScores, p.MangaIdToIndex)
 
 		userIndex = p.getUserIndex(user.Id)
-		if userIndex >= int32(len(p.AnimeScores)) {
+		if userIndex >= uint32(len(p.AnimeScores)) {
 			p.AnimeIndexes = append(p.AnimeIndexes, animeIndexes)
 			p.AnimeScores = append(p.AnimeScores, animeScores)
 
@@ -93,7 +101,7 @@ func (p *Pearson) UpdateUserSlices(user updater.UserData) int32 {
 }
 
 type PearsonResult struct {
-	Id      int32
+	Id      uint32
 	Shared  int
 	Pearson float32
 }
@@ -114,10 +122,10 @@ func (p *Pearson) Count(user updater.UserData, minShare int, anime, manga bool) 
 	compare := 0
 	pearsonHeap := &PearsonResultHeap{}
 	for otherIndex := 0; otherIndex < len(p.AnimeIndexes); otherIndex++ {
-		otherInt32 := int32(otherIndex)
+		otherInt32 := uint32(otherIndex)
 		if userIndex != otherInt32 {
 			shared, pearson := p.IndexesToPearson(userIndex, otherInt32, anime, manga)
-			sharedUserId := p.UserIndexReplace[otherInt32]
+			sharedUserId := p.UserIndexToId[otherInt32]
 			if int(shared) > minShare {
 				compare++
 				heap.Push(pearsonHeap, PearsonResult{sharedUserId, shared, pearson})
@@ -138,15 +146,25 @@ func (p *Pearson) Count(user updater.UserData, minShare int, anime, manga bool) 
 	return res, compare
 }
 
-func scoresSum(indexesA, indexesB []int16, scoresA, scoresB []int8) (int, int, [][2]int8) {
+func getScore(scores []uint8, i int) uint8 {
+	if i%2 == 0 {
+		return scores[i/2] >> 4
+	} else {
+		return scores[i/2] << 4 >> 4
+	}
+}
+
+func scoresSum(indexesA, indexesB []uint16, scoresA, scoresB []uint8) (int, int, [][2]uint8) {
 	scoresASum := 0
 	scoresBSum := 0
-	sharedScores := make([][2]int8, 0)
+	sharedScores := make([][2]uint8, 0)
 	for a, b := 0, 0; a < len(indexesA) && b < len(indexesB); {
 		if indexesA[a] == indexesB[b] {
-			scoresASum += int(scoresA[a])
-			scoresBSum += int(scoresB[b])
-			sharedScores = append(sharedScores, [2]int8{scoresA[a], scoresB[b]})
+			scoreA := getScore(scoresA, a)
+			scoreB := getScore(scoresB, b)
+			scoresASum += int(scoreA)
+			scoresBSum += int(scoreB)
+			sharedScores = append(sharedScores, [2]uint8{scoreA, scoreB})
 
 			a++
 			b++
@@ -161,12 +179,12 @@ func scoresSum(indexesA, indexesB []int16, scoresA, scoresB []int8) (int, int, [
 	return scoresASum, scoresBSum, sharedScores
 }
 
-func (p *Pearson) IndexesToPearson(indexA, indexB int32, anime, manga bool) (int, float32) {
+func (p *Pearson) IndexesToPearson(indexA, indexB uint32, anime, manga bool) (int, float32) {
 	numerator := float32(0.0)
 	denominatorA := float32(0.0)
 	denominatorB := float32(0.0)
 
-	sharedScores := make([][2]int8, 0)
+	sharedScores := make([][2]uint8, 0)
 	scoresASum := 0
 	scoresBSum := 0
 

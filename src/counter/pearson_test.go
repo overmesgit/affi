@@ -81,7 +81,7 @@ func TestScoresUpdate(t *testing.T) {
 	pearson.UpdateUserSlices(user1)
 	pearson.UpdateUserSlices(user2)
 
-	prev := int16(0)
+	prev := uint16(0)
 	for _, v := range pearson.AnimeIndexes[1] {
 		if v < prev {
 			t.Fatal("wrong sorting")

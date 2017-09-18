@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"github.com/go-pg/pg"
 	"mylog"
+	"runtime"
+	"time"
 	"updater"
 )
 
@@ -28,13 +30,13 @@ func NewPearsonCounter(db *pg.DB) *PearsonCounter {
 }
 
 func (p *PearsonCounter) Prepare() {
-	offset := 0
 	limit := 10000
 	scores := 0
-	has_scores := "jsonb_array_length(anime_scores) > 0 or jsonb_array_length(manga_scores) > 0"
+	lastLoadedId := uint(0)
 	for {
+		startTime := time.Now().Unix()
 		var users []updater.UserData
-		err := p.db.Model(&users).Where(has_scores).Limit(limit).Offset(offset).Select()
+		err := p.db.Model(&users).Where("id > ?", lastLoadedId).Order("id ASC").Limit(limit).Select()
 		if len(users) == 0 {
 			break
 		}
@@ -42,18 +44,20 @@ func (p *PearsonCounter) Prepare() {
 			mylog.Logger.Panicf("Load user scores: %v", err)
 		} else {
 			for i := range users {
-				p.Pearson.UpdateUserSlices(users[i])
-				scores += len(users[i].AnimeScores) + len(users[i].MangaScores)
+				if len(users[i].AnimeScores)+len(users[i].MangaScores) > 10 {
+					p.Pearson.UpdateUserSlices(users[i])
+					scores += len(users[i].AnimeScores) + len(users[i].MangaScores)
+				}
+				lastLoadedId = users[i].Id
 			}
 		}
-		offset += limit
-		fmt.Printf("Loaded user before id %v\n", offset)
-		fmt.Printf("Loaded scores %v\n", scores)
+		fmt.Printf("Loaded user before id:	%v, scores:	%v, time:	%v\n", lastLoadedId, scores, time.Now().Unix()-startTime)
+		runtime.GC()
 	}
 	mylog.Logger.Printf("Loaded users %v", len(p.Pearson.AnimeIndexes))
 	mylog.Logger.Printf("Scores: %v", scores)
-	mylog.Logger.Printf("Anime Items: %v", len(p.Pearson.AnimeIdReplace))
-	mylog.Logger.Printf("Manga Items: %v", len(p.Pearson.MangaIdReplace))
+	mylog.Logger.Printf("Anime Items: %v", len(p.Pearson.AnimeIdToIndex))
+	mylog.Logger.Printf("Manga Items: %v", len(p.Pearson.MangaIdToIndex))
 }
 
 func (p *PearsonCounter) Start() {

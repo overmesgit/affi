@@ -10,7 +10,7 @@ func main() {
 		User: "user", Password: "user", Database: "test",
 	})
 
-	myServer := server.NewServer("127.0.0.1:8000", db)
+	myServer := server.NewServer("0.0.0.0:8000", db)
 	myServer.Start()
 
 }
