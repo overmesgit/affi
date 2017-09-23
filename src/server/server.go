@@ -59,15 +59,13 @@ func NewServer(host string, db *pg.DB) Server {
 func (c *Server) Start() {
 	homeTempl = template.Must(template.ParseFiles("templates/home.html"))
 
-	c.counter.Prepare()
+	c.counter.Start()
 
 	updater.NewUserUpdater(c.db).Start()
 
 	updater.NewScoreUpdater(c.db, func(user updater.UserData) {
 		c.counter.UpdateChan <- user
 	}).Start(2)
-
-	c.counter.Start()
 
 	mylog.Logger.Printf("start %v", c.Host)
 
