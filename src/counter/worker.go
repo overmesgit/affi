@@ -64,7 +64,7 @@ func (p *PearsonCounter) Prepare() {
 	mylog.Logger.Printf("Anime Items: %v", len(p.Pearson.AnimeIdToIndex))
 	mylog.Logger.Printf("Manga Items: %v", len(p.Pearson.MangaIdToIndex))
 
-	p.SerializeDataToFile <- true
+	//p.SerializeDataToFile <- true
 }
 
 func (p *PearsonCounter) serialize() {
