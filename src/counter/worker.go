@@ -2,7 +2,6 @@ package counter
 
 import (
 	"encoding/gob"
-	"fmt"
 	"github.com/go-pg/pg"
 	"mylog"
 	"os"
