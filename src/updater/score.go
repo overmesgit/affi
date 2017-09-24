@@ -67,7 +67,7 @@ func (s *ScoreUpdater) startThread() {
 		mylog.Logger.Printf("Get score for %v %v", user.Id, user.Name)
 		update, err := malpar.GetUserScoresByName(user.Name, 3, 3)
 		if err != nil {
-			mylog.Logger.Printf("Get score for %v: %v", user, err)
+			mylog.Logger.Printf("Get score for %v: %v", user.Name, err)
 		} else {
 			if len(update.AnimeList) > 0 || len(update.MangaList) > 0 {
 				user.UpdateScoresFromList(update)
