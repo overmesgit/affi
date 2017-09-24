@@ -19,7 +19,11 @@ func GetUserScoresByName(userName string, retry int, sleep time.Duration) (UserL
 		var body []byte
 		for try := 1; try == 1 || (try <= retry && err != nil); try++ {
 			body, err = getUserApiPage(userName, content)
-			time.Sleep(sleep * time.Second)
+			if err == ErrTooMuchRequests {
+				time.Sleep(sleep * time.Second)
+			} else {
+				break
+			}
 		}
 		if err != nil {
 			return userList, err

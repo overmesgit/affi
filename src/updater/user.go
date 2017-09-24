@@ -63,6 +63,9 @@ func (u UserUpdater) FullUpdate() {
 		username, err := malpar.GetUserNameById(int(i), 3)
 		if err == malpar.ErrUserNotExist {
 			err = u.db.Delete(&UserData{Id: i})
+			if err == pg.ErrNoRows {
+				continue
+			}
 			if err != nil {
 				mylog.Logger.Printf("Delete user: %v", err)
 			}

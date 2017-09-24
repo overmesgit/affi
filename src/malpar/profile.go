@@ -86,8 +86,6 @@ func GetUserProfileDataByUserName(userName string, retry int) (UserProfile, erro
 		if err == nil {
 			break
 		}
-		fmt.Println(err)
-
 	}
 	if err != nil {
 		return userProfile, err

@@ -8,10 +8,11 @@ import (
 )
 
 var (
-	DBPassword string
-	DBName     string
-	DBUser     string
-	Host       string
+	DBPassword     string
+	DBName         string
+	DBUser         string
+	Host           string
+	ScoresUpdaters int
 )
 
 func Empty(args ...string) bool {
@@ -28,6 +29,7 @@ func main() {
 	flag.StringVar(&DBPassword, "db_password", "", "postgresql db password")
 	flag.StringVar(&DBName, "db_name", "", "postgresql db name")
 	flag.StringVar(&Host, "host", "", "listening ip and port(127.0.0.1:8000)")
+	flag.IntVar(&ScoresUpdaters, "scores_updaters", 3, "threads count for scores update")
 
 	flag.Parse()
 	if Empty(DBUser, DBPassword, DBName, Host) {
@@ -40,7 +42,7 @@ func main() {
 		User: DBUser, Password: DBPassword, Database: DBName,
 	})
 
-	myServer := server.NewServer(Host, db)
+	myServer := server.NewServer(Host, db, ScoresUpdaters)
 	myServer.Start()
 
 }

@@ -47,13 +47,14 @@ func FormatResponse(data interface{}, error error) interface{} {
 }
 
 type Server struct {
-	Host    string
-	counter *counter.PearsonCounter
-	db      *pg.DB
+	Host           string
+	counter        *counter.PearsonCounter
+	db             *pg.DB
+	scoresUpdaters int
 }
 
-func NewServer(host string, db *pg.DB) Server {
-	return Server{host, counter.NewPearsonCounter(db), db}
+func NewServer(host string, db *pg.DB, ScoresUpdaters int) Server {
+	return Server{host, counter.NewPearsonCounter(db), db, ScoresUpdaters}
 }
 
 func (c *Server) Start() {
@@ -65,9 +66,9 @@ func (c *Server) Start() {
 
 	updater.NewScoreUpdater(c.db, func(user updater.UserData) {
 		c.counter.UpdateChan <- user
-	}).Start(2)
+	}).Start(c.scoresUpdaters)
 
-	mylog.Logger.Printf("start %v", c.Host)
+	mylog.Logger.Printf("Start server: %v", c.Host)
 
 	fs := http.FileServer(http.Dir("static"))
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
