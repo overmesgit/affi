@@ -56,7 +56,7 @@ func (p *PearsonCounter) Prepare() {
 				lastLoadedId = users[i].Id
 			}
 		}
-		fmt.Printf("Loaded user before id:	%v, scores:	%v, time:	%v\n", lastLoadedId, scores, time.Now().Unix()-startTime)
+		mylog.Logger.Printf("Loaded user before id: %v, scores: %v, time: %v\n", lastLoadedId, scores, time.Now().Unix()-startTime)
 		runtime.GC()
 	}
 	mylog.Logger.Printf("Loaded users %v", len(p.Pearson.AnimeIndexes))
