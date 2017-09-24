@@ -1,6 +1,7 @@
 package updater
 
 import (
+	"fmt"
 	"github.com/go-pg/pg"
 	"malpar"
 	"mylog"
@@ -59,6 +60,8 @@ func (u UserUpdater) FullUpdate() {
 		mylog.Logger.Printf("Get last user: %v", err)
 	}
 
+	updateLogStack := 100
+	updatedUsers := make([]string, 0, updateLogStack)
 	for i := uint(lastUpdate.LastUpdatedId); i < lastUser.Id; i++ {
 		username, err := malpar.GetUserNameById(int(i), 3)
 		if err == malpar.ErrUserNotExist {
@@ -74,7 +77,7 @@ func (u UserUpdater) FullUpdate() {
 		if err != nil {
 			mylog.Logger.Printf("Get user data for %v: %v", i, err)
 		} else {
-			mylog.Logger.Printf("Get user data for %v: %v", i, username)
+			updatedUsers = append(updatedUsers, fmt.Sprintf("%v: %v", i, username))
 			user := UserData{Id: i, Name: username}
 			err = user.UpdateUserNameOrCreate(u.db)
 			if err != nil {
@@ -87,6 +90,10 @@ func (u UserUpdater) FullUpdate() {
 				}
 			}
 
+		}
+		if len(updatedUsers) >= updateLogStack {
+			mylog.Logger.Printf("Updated users: %v", updatedUsers)
+			updatedUsers = make([]string, 0, updateLogStack)
 		}
 	}
 }
