@@ -4,6 +4,8 @@ import (
 	"math"
 	"testing"
 	"updater"
+	"math/rand"
+	"fmt"
 )
 
 func TestPearson(t *testing.T) {
@@ -88,4 +90,42 @@ func TestScoresUpdate(t *testing.T) {
 		}
 	}
 
+}
+
+func BenchmarkPearson(b *testing.B) {
+	pearson := NewPearson()
+
+	var firstUser updater.UserData
+	for i := 0; i < 10000; i++ {
+		userAnimeScores := make([]updater.UserScore, 0)
+		for j := 0; j < 80; j++ {
+			score := updater.UserScore{Id: uint(rand.Intn(100)), Sc: uint8(rand.Intn(10))}
+			userAnimeScores = append(userAnimeScores, score)
+		}
+
+		userMangaScores := make([]updater.UserScore, 0)
+		for j := 0; j < 20; j++ {
+			score := updater.UserScore{Id: uint(rand.Intn(100)), Sc: uint8(rand.Intn(10))}
+			userMangaScores = append(userMangaScores, score)
+		}
+		user := updater.UserData{Id: uint(i+1), AnimeScores: userAnimeScores, MangaScores: userMangaScores}
+		pearson.UpdateUserSlices(user)
+		if i == 0 {
+			firstUser = user
+		}
+	}
+	fmt.Println(len(pearson.AnimeScores))
+	fmt.Println(len(pearson.AnimeIdToIndex))
+	fmt.Println(len(pearson.MangaIdToIndex))
+	b.ResetTimer()
+
+	//f, err := os.Create("prof")
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
+	//pprof.StartCPUProfile(f)
+	//defer pprof.StopCPUProfile()
+	for i := 0; i < b.N; i++ {
+		pearson.Count(firstUser, 10, true, true)
+	}
 }
