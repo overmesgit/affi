@@ -65,7 +65,7 @@ func (s *ScoreUpdater) startThread() {
 	for {
 		user := <-s.toUpdate
 		mylog.Logger.Printf("Get score for %v %v", user.Id, user.Name)
-		update, err := malpar.GetUserScoresByName(user.Name, 3, 3)
+		update, err := malpar.GetUserScoresByName(user.Name, 3, 3, "")
 		if err != nil {
 			mylog.Logger.Printf("Get score for %v: %v", user.Name, err)
 		} else {

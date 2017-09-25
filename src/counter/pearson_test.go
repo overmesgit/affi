@@ -1,11 +1,11 @@
 package counter
 
 import (
+	"fmt"
 	"math"
+	"math/rand"
 	"testing"
 	"updater"
-	"math/rand"
-	"fmt"
 )
 
 func TestPearson(t *testing.T) {
@@ -108,7 +108,7 @@ func BenchmarkPearson(b *testing.B) {
 			score := updater.UserScore{Id: uint(rand.Intn(100)), Sc: uint8(rand.Intn(10))}
 			userMangaScores = append(userMangaScores, score)
 		}
-		user := updater.UserData{Id: uint(i+1), AnimeScores: userAnimeScores, MangaScores: userMangaScores}
+		user := updater.UserData{Id: uint(i + 1), AnimeScores: userAnimeScores, MangaScores: userMangaScores}
 		pearson.UpdateUserSlices(user)
 		if i == 0 {
 			firstUser = user

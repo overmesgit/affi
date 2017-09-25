@@ -7,6 +7,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"reflect"
 	"strconv"
 )
@@ -136,10 +137,19 @@ func (l *UserList) ParseTitles(data []byte, type_ string) error {
 
 }
 
-func getUserApiPage(userName string, content string) ([]byte, error) {
-	url := mainUrl + fmt.Sprintf(apiUrl, userName, content)
+func getUserApiPage(userName string, content string, proxy string) ([]byte, error) {
+	requestUrl := mainUrl + fmt.Sprintf(apiUrl, userName, content)
 
-	resp, err := http.Get(url)
+	var resp *http.Response
+	var err error
+	if proxy != "" {
+		proxyUrl, _ := url.Parse(proxy)
+		myClient := &http.Client{Transport: &http.Transport{Proxy: http.ProxyURL(proxyUrl)}}
+		resp, err = myClient.Get(requestUrl)
+
+	} else {
+		resp, err = http.Get(requestUrl)
+	}
 
 	var body []byte
 	if err != nil {
@@ -151,7 +161,7 @@ func getUserApiPage(userName string, content string) ([]byte, error) {
 		if resp.StatusCode == 429 {
 			return body, ErrTooMuchRequests
 		}
-		return body, errors.New(fmt.Sprintf("User page error %v %v", url, resp.StatusCode))
+		return body, errors.New(fmt.Sprintf("User page error %v %v", requestUrl, resp.StatusCode))
 	}
 	return ioutil.ReadAll(resp.Body)
 

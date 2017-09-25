@@ -12,6 +12,7 @@ var (
 	DBName         string
 	DBUser         string
 	Host           string
+	Proxy          string
 	ScoresUpdaters int
 )
 
@@ -29,6 +30,7 @@ func main() {
 	flag.StringVar(&DBPassword, "db_password", "", "postgresql db password")
 	flag.StringVar(&DBName, "db_name", "", "postgresql db name")
 	flag.StringVar(&Host, "host", "", "listening ip and port(127.0.0.1:8000)")
+	flag.StringVar(&Proxy, "proxy", "", "proxy for user requests")
 	flag.IntVar(&ScoresUpdaters, "scores_updaters", 3, "threads count for scores update")
 
 	flag.Parse()
@@ -42,7 +44,7 @@ func main() {
 		User: DBUser, Password: DBPassword, Database: DBName,
 	})
 
-	myServer := server.NewServer(Host, db, ScoresUpdaters)
+	myServer := server.NewServer(Host, db, ScoresUpdaters, Proxy)
 	myServer.Start()
 
 }

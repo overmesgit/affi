@@ -179,6 +179,7 @@ func scoresSum(indexesA, indexesB []uint16, scoresA, scoresB []uint8, sharedScor
 }
 
 var sliceBuffer = make([][2]uint8, 0, 1000)
+
 func (p *Pearson) IndexesToPearson(indexA, indexB uint32, anime, manga bool) (int, float32) {
 	numerator := float32(0.0)
 	denominatorA := float32(0.0)

@@ -51,10 +51,11 @@ type Server struct {
 	counter        *counter.PearsonCounter
 	db             *pg.DB
 	scoresUpdaters int
+	ScoresProxy    string
 }
 
-func NewServer(host string, db *pg.DB, ScoresUpdaters int) Server {
-	return Server{host, counter.NewPearsonCounter(db), db, ScoresUpdaters}
+func NewServer(host string, db *pg.DB, scoresUpdaters int, proxy string) Server {
+	return Server{host, counter.NewPearsonCounter(db), db, scoresUpdaters, proxy}
 }
 
 func (c *Server) Start() {

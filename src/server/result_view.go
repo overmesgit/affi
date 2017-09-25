@@ -121,7 +121,7 @@ func (c *Server) createResult(r *http.Request) (interface{}, error) {
 	}
 	if err == nil {
 		go func() {
-			userList, err := malpar.GetUserScoresByName(toSaveResult.UserName, 3, 0)
+			userList, err := malpar.GetUserScoresByName(toSaveResult.UserName, 3, 0, c.ScoresProxy)
 			if err != nil {
 				toSaveResult.Status = ERROR
 				toSaveResult.Error = err.Error()
