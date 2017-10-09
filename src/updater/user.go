@@ -56,13 +56,20 @@ func (u UserUpdater) FullUpdate() {
 	}
 
 	lastUser, err := GetLastUser(u.db)
+	lastId := uint(0)
 	if err != nil {
-		mylog.Logger.Printf("Get last user: %v", err)
+		if err == pg.ErrNoRows {
+			lastId = uint(100)
+		} else {
+			mylog.Logger.Printf("Get last user: %v", err)
+		}
+	} else {
+		lastId = lastUser.Id
 	}
 
 	updateLogStack := 100
 	updatedUsers := make([]string, 0, updateLogStack)
-	for i := uint(lastUpdate.LastUpdatedId); i < lastUser.Id; i++ {
+	for i := uint(lastUpdate.LastUpdatedId); i < lastId; i++ {
 		username, err := malpar.GetUserNameById(int(i), 3)
 		if err == malpar.ErrUserNotExist {
 			err = u.db.Delete(&UserData{Id: i})

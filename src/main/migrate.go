@@ -2,6 +2,8 @@ package main
 
 import (
 	"github.com/go-pg/pg"
+	"server"
+	"updater"
 )
 
 func main() {
@@ -58,7 +60,7 @@ func main() {
 }
 
 func createSchema(db *pg.DB) error {
-	for _, model := range []interface{}{} {
+	for _, model := range []interface{}{&updater.LastUpdated{}, &updater.UserData{}, &server.Result{}} {
 		err := db.CreateTable(model, nil)
 		if err != nil {
 			return err
